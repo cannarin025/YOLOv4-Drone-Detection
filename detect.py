@@ -1,42 +1,95 @@
-from darknet.darknet import *
+import darknet.darknet as darknet
 import cv2
+import os
 
-# darknet helper function to run detection on image
-def run_detection(network, img, width, height):
-    darknet_image = make_image(width, height, 3)
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img_resized = cv2.resize(img_rgb, (width, height),
-                                interpolation=cv2.INTER_LINEAR)
+class Detector:
+    """
+    A class to load all necessary model components and carry out detections using YOLOv4
+    """
+    def __init__(self, model_path):
+        model_files = list(os.path.join(model_path, file) for file in os.listdir(model_path))
+        weights_path = [file_path for file_path in model_files if file_path.endswith(".weights")][0]
+        cfg_path = [file_path for file_path in model_files if file_path.endswith(".cfg")][0]
+        data_path = [file_path for file_path in model_files if file_path.endswith(".data")][0]
 
-    # get image ratios to convert bounding boxes to proper size
-    img_height, img_width, _ = img.shape
-    width_ratio = img_width/width
-    height_ratio = img_height/height
+        self.__network, self.__class_names, self.__class_colors = darknet.load_network(cfg_path, data_path, weights_path)
 
-    # run model on darknet style image to get detections
-    copy_image_from_bytes(darknet_image, img_resized.tobytes())
-    detections = detect_image(network, class_names, darknet_image)
-    free_image(darknet_image)
-    return detections, width_ratio, height_ratio
+    def run_detection(self, img):
+        width = darknet.network_width(self.__network)
+        height = darknet.network_height(self.__network)
+        darknet_image = darknet.make_image(width, height, 3)
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img_resized = cv2.resize(img_rgb, (width, height),
+                                 interpolation=cv2.INTER_LINEAR)
+        # get image ratios to convert bounding boxes to proper size
+        img_height, img_width, _ = img.shape
+        width_ratio = img_width / width
+        height_ratio = img_height / height
+        # run model on darknet style image to get detections
+        darknet.copy_image_from_bytes(darknet_image, img_resized.tobytes())
+        detections = darknet.detect_image(self.__network, self.__class_names, darknet_image)
+        darknet.free_image(darknet_image)
+
+        predictions = []
+        for label, confidence, bbox in detections:
+            x1, y1, x2, y2 = darknet.bbox2points(bbox)
+            x1, y1, x2, y2 = int(x1 * width_ratio), int(y1 * height_ratio), int(x2 * width_ratio), int(
+                y2 * height_ratio)
+            predictions.append({"class_name": label, "box_coords": [(x1, y1), (x2, y2)], "confidence": confidence})
+
+        return predictions
+
+    def draw_detections(self, img, detections):
+        for detection in detections:
+            cv2.rectangle(img,
+                          detection["box_coords"][0],
+                          detection["box_coords"][1],
+                          self.__class_colors[detection["class_name"]], 2)
+
+            cv2.putText(img,
+                        "{} [{:.2f}]".format(detection["class_name"],
+                                             float(detection["confidence"])),
+                        (detection["box_coords"][0][0], detection["box_coords"][0][1] - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                        self.__class_colors[detection["class_name"]], 2)
+        return img
+
+    def detect_img(self, img):
+        detections = self.run_detection(img)
+        img = self.draw_detections(img, detections)
+        cv2.imshow("labelled", img)
+        cv2.waitKey(0)
+
+    def detect_video(self, cap):
+        frame_count = 0
+        while True:
+            # Capture frame-by-frame
+            ret, frame = cap.read()
+            frame_count += 1
+            detections = self.run_detection(frame)
+            print(detections)
+            self.draw_detections(frame, detections)
+
+            cv2.imshow("video detection", frame)
+            cv2.waitKey(1)
+
+    # When everything done, release the capture
+    # cap.release()
+    # cv2.destroyAllWindows()
+
 
 # load in our YOLOv4 architecture network
-vis_network, class_names, class_colors = load_network("./models/vis/yolov4-obj.cfg", "./models/vis/obj.data", "./models/vis/yolov4-obj_best.weights")  
-width = network_width(vis_network)
-height = network_height(vis_network)
+vis_detector = Detector("../models/vis")
 
+vis_image = cv2.imread("../data/img/vis_test1.jpg")
+vis_vid = cv2.VideoCapture("../data/vid/vis_test.avi")
+FLIR_vid = cv2.VideoCapture("../data/vid/FLIR.avi")
 
-image = cv2.imread("./data/img/vis_test1.png")
+# run test on image
+vis_detector.detect_img(vis_image)
+#detect_video(vis_network, vis_vid)
 
-# run test on images
-detections, width_ratio, height_ratio = run_detection(vis_network, image, width, height)
-print(detections)
-
-for label, confidence, bbox in detections:
-    print(label, confidence, bbox)
-    left, top, right, bottom = bbox2points(bbox)
-    left, top, right, bottom = int(left * width_ratio), int(top * height_ratio), int(right * width_ratio), int(bottom * height_ratio)
-    cv2.rectangle(image, (left, top), (right, bottom), class_colors[label], 2)
-    cv2.putText(image, "{} [{:.2f}]".format(label, float(confidence)),
-                        (left, top - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                        class_colors[label], 2)
-cv2.imshow("labelled", image)
+# while True:
+#     ret, frame = vis_vid.read()
+#     cv2.imshow("video", frame)
+#     cv2.waitKey(1)
