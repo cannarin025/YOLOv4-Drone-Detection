@@ -78,15 +78,6 @@ class Detector:
     # cv2.destroyAllWindows()
 
 
-# load in our YOLOv4 architecture network
-vis_detector = Detector("../models/vis")
-
-vis_image = cv2.imread("../data/img/vis_test1.jpg")
-vis_vid = cv2.VideoCapture("../data/vid/vis_test.avi")
-FLIR_vid = cv2.VideoCapture("../data/vid/FLIR.avi")
-
-# run test on image
-vis_detector.detect_img(vis_image)
 #detect_video(vis_network, vis_vid)
 
 # while True:
