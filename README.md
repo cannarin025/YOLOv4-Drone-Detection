@@ -26,8 +26,11 @@
     **Makefile Options:**
 
    GPU: Enable the use of GPU
+   
    OPENCV: Enable the use of OpenCV
+   
    CUDNN: Enable the use of CUDNN
+   
    CUDNN_HALF: Enables support for tensor cores
 
 4. Build darknet 
@@ -55,6 +58,8 @@
 
 ###Filestructure
 
-    main.py: Code to be edited by the user to run drone detections.
+   main.py: Code to be edited by the user to run drone detections.
+   
+   
 
     
