@@ -60,6 +60,20 @@
 
    main.py: Code to be edited by the user to run drone detections.
    
+   detect.py: Code containing detecor class.
+   
+   DroneCode_Vis.py: Code containing area class and drone control.
+   
+   multimodal_detection.py: Code enabling IR and Visible detections to be combined.
+   
+   make_darknet.sh: Bash script to configure and make darkent.
+   
+   darknet: Directory containing darknet files and executable.
+   
+   models: Directory where trained model .weights, .data, .names and .cfg files should be placed
+   
+   data: Directory where frames containing classes will be saved, and where test images / videos should be placed.
+   
    
 
     
