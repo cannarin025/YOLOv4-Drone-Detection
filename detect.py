@@ -1,6 +1,7 @@
-import darknet.darknet as darknet
+from darknet import darknet
 import cv2
 import os
+
 
 class Detector:
     """
@@ -37,21 +38,25 @@ class Detector:
                 y2 * height_ratio)
             predictions.append({"class_name": label, "box_coords": [(x1, y1), (x2, y2)], "confidence": confidence})
 
+        if predictions == []:
+            predictions = None
+
         return predictions
 
     def draw_detections(self, img, detections):
-        for detection in detections:
-            cv2.rectangle(img,
-                          detection["box_coords"][0],
-                          detection["box_coords"][1],
-                          self.__class_colors[detection["class_name"]], 2)
+        if detections is not None:
+            for detection in detections:
+                cv2.rectangle(img,
+                              detection["box_coords"][0],
+                              detection["box_coords"][1],
+                              self.__class_colors[detection["class_name"]], 2)
 
-            cv2.putText(img,
-                        "{} [{:.2f}]".format(detection["class_name"],
-                                             float(detection["confidence"])),
-                        (detection["box_coords"][0][0], detection["box_coords"][0][1] - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                        self.__class_colors[detection["class_name"]], 2)
+                cv2.putText(img,
+                            "{} [{:.2f}]".format(detection["class_name"],
+                                                 float(detection["confidence"])),
+                            (detection["box_coords"][0][0], detection["box_coords"][0][1] - 5),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                            self.__class_colors[detection["class_name"]], 2)
         return img
 
     def detect_img(self, img):
@@ -60,27 +65,28 @@ class Detector:
         cv2.imshow("labelled", img)
         cv2.waitKey(0)
 
+    def save_detection(self, img, savepath):
+        detections = self.run_detection(img)
+        img = self.draw_detections(img, detections)
+        cv2.imwrite(savepath, img)
+
     def detect_video(self, cap):
         frame_count = 0
-        while True:
+        run = True
+        while run:
             # Capture frame-by-frame
             ret, frame = cap.read()
-            frame_count += 1
-            detections = self.run_detection(frame)
-            print(detections)
-            self.draw_detections(frame, detections)
+            if not ret:
+                run = False
+            else:
+                frame_count += 1
+                detections = self.run_detection(frame)
+                print(detections)
+                self.draw_detections(frame, detections)
 
-            cv2.imshow("video detection", frame)
-            cv2.waitKey(1)
+                cv2.imshow("video detection", frame)
+                cv2.waitKey(1)
 
-    # When everything done, release the capture
-    # cap.release()
-    # cv2.destroyAllWindows()
-
-
-#detect_video(vis_network, vis_vid)
-
-# while True:
-#     ret, frame = vis_vid.read()
-#     cv2.imshow("video", frame)
-#     cv2.waitKey(1)
+        #When everything done, release the capture
+        cap.release()
+        cv2.destroyAllWindows()
