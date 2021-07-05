@@ -1,4 +1,4 @@
-# drone_detection
+# YOLOv4 Drone Detection
 
 ## About 
 This is a repository enabling a Parrot Bebop 2 drone to detect and track custom objects using a trained YOLOv4 object detection model. This repository was created in collaboration with [Jcm4318](https://github.com/jcm4318) as part of our Bachelor's project where we proposed a new solution to Australia's invasive Cane Toad problem.
