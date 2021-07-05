@@ -1,14 +1,20 @@
 # drone_detection
 
-**Note: this repo should be run on a UNIX system.** If a GPU is used it must be NVIDIA and you should have CUDA, CUDNN and OPENCV set up.
+## About 
+This is a repository enabling a Parrot Bebop 2 drone to detect and track custom objects using a trained YOLOv4 object detection model. This repository was created in collaboration with [Jcm4318](https://github.com/jcm4318) as part of our Bachelor's project where we proposed a new solution to Australia's invasive Cane Toad problem.
 
-##Prerequisites
+**Note: this repo should be run on a UNIX system.** If a GPU is used it must be NVIDIA and you should have CUDA, CUDNN and OPENCV set up. It is highly recommended that a GPU is used.
+
+## Prerequisites
+1. Trained YOLOv4 Model. See [Darknet](https://github.com/AlexeyAB/darknet) to learn how to do this.
+2. Parrot Bebop 2 drone.
+
 **Prerequisites for use with GPU:**
 1. CUDA
 2. CUDNN
 3. OPENCV
 
-##Setup
+## Setup
 1. Install dependencies
 
     Run `pip install -r requirements.txt`
@@ -46,17 +52,16 @@
         sudo /bin/bash -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
         sudo ldconfig
 
-##Use
+## Use
 
-**Set run configuration of main.py to inside the darknet directory**
+**Set run configuration of main.py to be inside the darknet directory**
 
-1. Define area for drone in main.py using area class.
+1. Put trained YOLOv4 model files into corresponding Vis/IR folder inside the models directory.
+2. Define area for drone in main.py using area class.
     Specify rectangular geofence for drone. Drone will not leave this defined space.
-2. Run drone detections by calling the area.run() method.
+3. Run drone detections by calling the area.run() methodd. Specify step size between photographs, length of flight path and flight altitude.
 
-    Specify step size between photographs, length of flight path and flight altitude.
-
-###Filestructure
+### Filestructure
 
    main.py: Code to be edited by the user to run drone detections.
    
