@@ -23,9 +23,12 @@
    
 3. Edit `make_darknet.sh` to configure as desired.
     
-    **Options:**
+    **Makefile Options:**
 
-   GPU: 
+   GPU: Enable the use of GPU
+   OPENCV: Enable the use of OpenCV
+   CUDNN: Enable the use of CUDNN
+   CUDNN_HALF: Enables support for tensor cores
 
 4. Build darknet 
    
@@ -41,5 +44,17 @@
         sudo ldconfig
 
 ##Use
+
+**Set run configuration of main.py to inside the darknet directory**
+
+1. Define area for drone in main.py using area class.
+    Specify rectangular geofence for drone. Drone will not leave this defined space.
+2. Run drone detections by calling the area.run() method.
+
+    Specify step size between photographs, length of flight path and flight altitude.
+
 ###Filestructure
 
+    main.py: Code to be edited by the user to run drone detections.
+
+    
